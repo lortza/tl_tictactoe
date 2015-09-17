@@ -6,6 +6,8 @@
 # computer picks an empty square
 # this repeats until there is a logical win
 # push user input into array
+
+#TODO: 1) handle invalid responses 2) refactor 3) watch video
             
 #winning_combos = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,6], [3,6,9], [1,5,9], [7,5,3]]
 
