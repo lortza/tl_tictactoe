@@ -7,6 +7,8 @@
 # this repeats until there is a logical win
 # push user input into array
 
+#really nice solution: http://jheg.github.io/programs/2014/09/03/tic-tac-toe-pt2/
+
 #TODO: 1) handle invalid responses 2) refactor 3) watch video
             
 #winning_combos = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,6], [3,6,9], [1,5,9], [7,5,3]]
