@@ -17,103 +17,176 @@
 # or else
 #   it's a tie
 
+module Reference
+  def ref_board
+    system 'clear'
+    board = <<-art
+    1 | 2 | 3
+   ---+---+---
+    4 | 5 | 6
+   ---+---+---
+    7 | 8 | 9   
+
+    art
+    puts board
+  end #draw_ref_board
+end #Reference
 
 class Board
+  WINNING_LINES = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,8], [3,6,9], [1,5,9], [3,5,7]]
+
   def initialize
     @data = {}
     (1..9).each {|position| @data[position] = Square.new(" ")}
   end #initialize
 
   def draw
-    puts "Drawing board..."
-    puts @data.inspect
+    board = <<-art
+     |     |
+  #{@data[1]}  |  #{@data[2]}  |  #{@data[3]}
+     |     |
+-----+-----+-----
+     |     |
+  #{@data[4]}  |  #{@data[5]}  |  #{@data[6]}
+     |     |
+-----+-----+-----
+     |     |
+  #{@data[7]}  |  #{@data[8]}  |  #{@data[9]}
+     |     |
+
+    art
+    puts board
+    puts
   end #draw
 
-################## Stopped at 44:20  https://www.gotealeaf.com/lessons/1c83977b/assignments/2021
   def empty_squares
-    @data.select {|_, sq| sq.value == " "}.value
-    []
+    @data.select {|_, sq| sq.empty?}.values
   end #empty_squares
+
+  def empty_positions
+    @data.select {|_, sq| sq.empty?}.keys
+  end #empty positions
 
   def all_squares_marked?
     empty_squares.size == 0
   end #all_squares_marked
 
+  def mark_square(position, marker)
+    @data[position].mark(marker)
+  end #mark_square
 
-
+  def three_squares_in_a_row?(marker)
+    WINNING_LINES.each do |line|
+      return true if @data[line[0]].value == marker && @data[line[1]].value  == marker && @data[line[2]].value == marker
+    end
+    false
+  end
 end #Board
-
-
-class Player
-end #Player
 
 
 class Square
   attr_accessor :value
+
   def initialize(v)
     @value = v
   end# initialize
+
+  def mark(marker)
+    @value = marker
+  end #mark
+
+  def occupied?
+    @value != " "
+  end #occupied!
+
+  def empty?
+    @value == " "
+  end #empty!
+
+  def to_s
+    @value
+  end #to_s
 end #Square
 
-board = Board.new
-p board
 
-# # creates a hash with all of the board positions
-# def initialize_board
-#   b = {}
-#   (1..9).each {|position| b[position] = " "}
-#   b
-# end
+class Player
+  attr_accessor :marker, :name
 
-# def draw_board(b)
-#   system "clear"
-#   puts " #{b[1]} | #{b[2]} | #{b[3]}"
-#   puts "---+---+---"
-#   puts " #{b[4]} | #{b[5]} | #{b[6]}"
-#   puts "---+---+---"
-#   puts " #{b[7]} | #{b[8]} | #{b[9]} "                    
-# end#def
+  def initialize(name, marker)
+    @name = name
+    @marker = marker
+  end #initialize
+end #Player
 
-# def empty_positions(b)
-#   b.select {|k, v| v == " "}.keys
-# end #empty_positions
 
-# def player_picks_square(b)
-#   puts "Pick a square (1 - 9):"
-#   position = gets.chomp.to_i
-#   b[position] = 'X'
-# end
+class Game
+  include Reference
 
-# def computer_picks_square(b)
-#   position = empty_positions(b).sample
-#   b[position] = 'O'
-# end
+  def initialize
+    @board = Board.new
+    @player = Player.new("PlayerName", "X")
+    @computer = Player.new("The Computer", "O")
+    @current_player = @player
+  end #initialize
 
-# def check_winner(b)
-#   winning_lines = [[1,2,3], [4,5,6], [7,8,9], [1,4,7], [2,5,8], [3,6,9], [1,5,9], [3,5,7]]
-#   winning_lines.each do |line|
-#     if b[line[0]] == 'X' and b[line[1]] == 'X' and b[line[2]] == 'X'
-#       return 'Player'
-#     elsif b[line[0]] == 'O' and b[line[1]] == 'O' and b[line[2]] == 'O'
-#       return 'Computer'
-#     else
-#       return nil
-#     end
-#   end
-# end
+  def current_player_marks_square
+    if @current_player == @player
+      begin
+        puts "Choose a position #{@board.empty_positions} to place your mark:"
+        position = gets.chomp.to_i
+      end until @board.empty_positions.include?(position)
+    else
+      position = @board.empty_positions.sample
+    end #if
+    @board.mark_square(position, @current_player.marker)
+  end #current_player_marks_square
 
-# board = initialize_board
-# draw_board(board)
+  def play
+    ref_board
+    @board.draw
+    loop do
+      current_player_marks_square
+      ref_board
+      @board.draw
+      if current_player_wins?
+        puts "#{@current_player.name} is the winner!"
+        break
+      elsif @board.all_squares_marked?
+        puts "Ruh roh. The board is full and nobody won. It's a tie."
+        break
+      else
+        alternate_player
+      end #if
+    end #loop
+    
+  end #play
 
-# begin
-#   player_picks_square(board)
-#   computer_picks_square(board)
-#   draw_board(board)
-#   winner = check_winner(board)
-# end until winner || empty_positions(board).empty?
+  def alternate_player
+    if @current_player == @player
+      @current_player = @computer
+    else
+      @current_player = @player
+    end #if
+  end #alternate_player
 
-# if winner
-#   puts "#{winner} won!"
-# else
-#   puts "It's a tie!"
-# end
+  def current_player_wins?
+    @board.three_squares_in_a_row?(@current_player.marker)
+  end #current_player_wins?
+
+end #Game
+
+
+# =========== GAME PLAY LOOP ==================
+play_choice = "Y"
+puts "Welcome to Tic Tac Toe."
+Game.new.play
+
+puts "Want to play again? Y | N"
+play_choice = gets.chomp.upcase
+
+while play_choice.include? "Y"
+  Game.new.play
+  puts "Want to play again? Y | N"
+  play_choice = gets.chomp.upcase
+end
+puts "Bye! See you next time."
